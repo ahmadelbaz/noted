@@ -26,36 +26,41 @@ class AddEditNoteScreen extends ConsumerWidget {
           // String? title = !isNew! ? notesProvider.currentNote.title : '';
           // String? body = !isNew! ? notesProvider.currentNote.body : '';
           return Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              TextFormField(
-                initialValue: notesProvider.currentNote.title,
-                decoration: const InputDecoration(
-                  labelText: 'Enter title here...',
-                ),
-                onChanged: (value) async {
-                  await notesProvider.updateTitle(
-                      notesProvider.currentNote, value);
-                },
-              ),
-              TextFormField(
-                initialValue: notesProvider.currentNote.body,
-                decoration: const InputDecoration(
-                  labelText: 'Enter body here...',
-                ),
-                onChanged: (value) async {
-                  await notesProvider.updateBody(
-                      notesProvider.currentNote, value);
-                },
-              ),
-              IconButton(
-                onPressed: () {
-                  notesProvider.switchFavorite(notesProvider.currentNote);
-                },
-                icon: Icon(
-                  notesProvider.getFavorite(notesProvider.currentNote)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
+              Expanded(
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      initialValue: notesProvider.currentNote.title,
+                      decoration: const InputDecoration(
+                        labelText: 'Enter title here...',
+                      ),
+                      onChanged: (value) async {
+                        await notesProvider.updateTitle(
+                            notesProvider.currentNote, value);
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: notesProvider.currentNote.body,
+                      decoration: const InputDecoration(
+                        labelText: 'Enter body here...',
+                      ),
+                      onChanged: (value) async {
+                        await notesProvider.updateBody(
+                            notesProvider.currentNote, value);
+                      },
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        notesProvider.switchFavorite(notesProvider.currentNote);
+                      },
+                      icon: Icon(
+                        notesProvider.getFavorite(notesProvider.currentNote)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

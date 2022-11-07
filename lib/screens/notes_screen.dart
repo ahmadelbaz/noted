@@ -4,11 +4,6 @@ import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
 
-// Provider (State) to detect which note we are using right now
-// final currentNoteStateProvider = StateProvider<Note>(
-//   (ref) => Note(title: 'SS', body: 'DD', isFavorite: true),
-// );
-
 class NotesScreen extends ConsumerWidget {
   const NotesScreen({super.key});
 
@@ -20,59 +15,115 @@ class NotesScreen extends ConsumerWidget {
       ),
       body: Consumer(
         builder: (context, ref, child) {
+          final futureProvider = ref.watch(dataFutureProvider);
           final notesProvider = ref.watch(notesChangeNotifierProvider);
-          return ListView.builder(
-            itemCount: notesProvider.count,
-            itemBuilder: ((context, index) {
-              final note = notesProvider.notes[index];
-              return ListTile(
-                title: Text(
-                  note.title,
-                ),
-                subtitle: Text(note.body),
-                trailing: IconButton(
-                  onPressed: () {
-                    // isFavorite = !isFavorite!;
-                    notesProvider.switchFavorite(note);
-                  },
-                  icon: Icon(
-                    notesProvider.getFavorite(note)
-                        ? Icons.favorite
-                        : Icons.favorite_border,
+          return futureProvider.when(
+            skipLoadingOnReload: true,
+            data: (data) => ListView.builder(
+              itemCount: notesProvider.count,
+              itemBuilder: (context, index) {
+                final note = notesProvider.notes[index];
+                return ListTile(
+                  title: Text(
+                    note.title,
                   ),
-                ),
-                onTap: () async {
-                  notesProvider.setCurrentNote(note);
-                  // final updatedNote =
-                  // await addOrUpdateDialog(context, notesProvider, note);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const AddEditNoteScreen(),
+                  subtitle: Text(note.body),
+                  trailing: IconButton(
+                    onPressed: () => notesProvider.switchFavorite(note),
+                    icon: Icon(
+                      notesProvider.getFavorite(note)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
                     ),
-                  );
-                },
-              );
-            }),
+                  ),
+                  onTap: () async {
+                    notesProvider.setCurrentNote(note);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddEditNoteScreen(),
+                      ),
+                    );
+                  },
+                  onLongPress: () {
+                    notesProvider.remove(note);
+                  },
+                );
+              },
+            ),
+            error: (error, stackTrace) => const Center(
+              child: Text('Error 😅'),
+            ),
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // final newNote = await addOrUpdateDialog(
-          //     context, ref.watch(notesChangeNotifierProvider));
-          // if (newNote != null) {
-          // }
+        //Floating action button on Scaffold
+        onPressed: () {
+          //code to execute on button press
           final newNote = Note(title: '', body: '', isFavorite: false);
-          final notesProvider = ref.read(notesChangeNotifierProvider);
+          final notesProvider = ref.watch(notesChangeNotifierProvider);
           notesProvider.add(newNote);
-          notesProvider.setCurrentNote(newNote);
+          // notesProvider.setCurrentNote(newNote);
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => const AddEditNoteScreen(),
             ),
           );
         },
-        child: const Icon(Icons.add), // TODO : Check the note with good FAB
+        child: const Icon(Icons.send), //icon inside button
+      ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      //floating action button position to right
+
+      bottomNavigationBar: BottomAppBar(
+        //bottom navigation bar on scaffold
+        color: Colors.teal,
+        shape: const CircularNotchedRectangle(), //shape of notch
+        notchMargin:
+            5, //notche margin between floating button and bottom appbar
+        child: Row(
+          //children inside bottom appbar
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            IconButton(
+              icon: const Icon(
+                Icons.menu,
+                color: Colors.white,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.search,
+                color: Colors.white,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.print,
+                color: Colors.white,
+              ),
+              onPressed: () {},
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 90),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.people,
+                  color: Colors.white,
+                ),
+                onPressed: () {},
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

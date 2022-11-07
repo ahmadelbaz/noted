@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
+import 'package:noted/models/database_model.dart';
 import 'package:uuid/uuid.dart';
 
-@immutable
-class Note {
-  final String uuid;
-  final String title;
-  final String body;
-  final DateTime createdDate;
-  final DateTime updatedDate;
-  final bool isFavorite;
+// @immutable
+class Note implements DatabaseModel {
+  String? uuid;
+  String? title;
+  String? body;
+  DateTime? createdDate;
+  DateTime? updatedDate;
+  bool? isFavorite;
   Note({
     String? uuid,
     required this.title,
@@ -37,5 +37,55 @@ class Note {
   int get hashCode => uuid.hashCode;
 
   @override
-  String toString() => 'Person(name: $title, body: $body, uuid: $uuid)';
+  String toString() => 'Notes(name: $title, body: $body, uuid: $uuid)';
+
+  // Handle the data that is coming from db
+  Note.fromMap(Map<String, dynamic> map) {
+    // Convert int to DateTime (becauze we cant store DateTime type in sqlite)
+    DateTime newCreatedDateTime =
+        DateTime.fromMillisecondsSinceEpoch(map['createddate']);
+    DateTime newUpdatedDateTime =
+        DateTime.fromMillisecondsSinceEpoch(map['updateddate']);
+    // Convert int to bool (cuz sqlite doesn't have bool so we use int instead)
+    final newIsFavorite = map['isfavorite'] == 1 ? true : false;
+    uuid = map['id'];
+    title = map['title'];
+    body = map['body'];
+    createdDate = newCreatedDateTime;
+    updatedDate = newUpdatedDateTime;
+    isFavorite = newIsFavorite;
+  }
+
+  @override
+  String? database() {
+    return 'notes_database';
+  }
+
+  @override
+  String? getId() {
+    return uuid;
+  }
+
+  @override
+  String? table() {
+    return 'notes';
+  }
+
+  @override
+  Map<String, dynamic>? toMap() {
+    // Convert DateTime to int
+    int storedCreatedDateTime = createdDate!.millisecondsSinceEpoch;
+    int storedUpdatedDateTime = updatedDate!.millisecondsSinceEpoch;
+    // Convert bool to int to store it in db
+    final newIsFavorite = isFavorite ?? false ? 1 : 0;
+
+    return {
+      'id': uuid,
+      'title': title,
+      'body': body,
+      'createddate': storedCreatedDateTime,
+      'updateddate': storedUpdatedDateTime,
+      'isfavorite': newIsFavorite,
+    };
+  }
 }

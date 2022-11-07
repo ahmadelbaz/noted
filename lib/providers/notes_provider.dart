@@ -1,11 +1,11 @@
 import 'dart:collection';
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:noted/database/database.dart';
 import 'package:noted/models/note.dart';
 
 class NoteProvider extends ChangeNotifier {
-  final List<Note> _notes = [];
+  List<Note> _notes = [];
 
   int get count => _notes.length;
 
@@ -15,40 +15,57 @@ class NoteProvider extends ChangeNotifier {
   Note _currentNote = Note(title: '', body: '', isFavorite: false);
   Note get currentNote => _currentNote;
 
+  // Instance from database to use it in provider
+  MyDatabase myDatabase = MyDatabase();
+
+  // Method to set current note to the one that user are using right now
   setCurrentNote(Note note) {
     _currentNote = note;
     notifyListeners();
   }
 
+  // Method to get all notes from database
+  Future<void> getAllNotes() async {
+    await myDatabase.notesDatabase();
+    _notes = await myDatabase.getAll('notes') as List<Note>;
+    // notifyListeners();
+  }
+
   // Method to add new note
-  void add(Note note) {
+  Future<void> add(Note note) async {
+    await myDatabase.notesDatabase();
     _notes.add(note);
+    _currentNote = note;
+    await myDatabase.insert(note);
     notifyListeners();
   }
 
   // Method to remove a note
-  void remove(Note note) {
+  Future<void> remove(Note note) async {
+    await myDatabase.notesDatabase();
     _notes.remove(note);
+    await myDatabase.delete(note);
     notifyListeners();
   }
 
   // Method to update title
   Future<void> updateTitle(Note note, String newTitle) async {
+    await myDatabase.notesDatabase();
     final index = _notes.indexOf(note);
     Note selectedNote = _notes[index];
-    log('this is title we want to edit : ${selectedNote.title}');
     _notes[index] = selectedNote.updated(
       newTitle,
       note.body,
       note.isFavorite,
     );
+    await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
-    log('this is title we want to edit : ${selectedNote.title}');
   }
 
   // Method to update body
   Future<void> updateBody(Note note, String newBody) async {
+    await myDatabase.notesDatabase();
     final index = _notes.indexOf(note);
     Note selectedNote = _notes[index];
     _notes[index] = selectedNote.updated(
@@ -56,33 +73,22 @@ class NoteProvider extends ChangeNotifier {
       newBody,
       note.isFavorite,
     );
+    await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }
 
-  // void update(Note updatedNote) {
-  //   final index = _notes.indexOf(updatedNote);
-  //   Note oldNote = _notes[index];
-  //   if (oldNote.title != updatedNote.title ||
-  //       oldNote.body != updatedNote.body) {
-  //     _notes[index] = oldNote.updated(
-  //       updatedNote.title,
-  //       updatedNote.body,
-  //       updatedNote.isFavorite,
-  //     );
-  //     notifyListeners();
-  //   }
-  // }
-
   // Method to switch between favorite or not
-  void switchFavorite(Note note) {
+  Future<void> switchFavorite(Note note) async {
+    await myDatabase.notesDatabase();
     final index = _notes.indexOf(note);
     Note oldNote = _notes[index];
     _notes[index] = oldNote.updated(
       note.title,
       note.body,
-      !note.isFavorite,
+      !note.isFavorite!,
     );
+    await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }
@@ -92,6 +98,6 @@ class NoteProvider extends ChangeNotifier {
     final index = _notes.indexOf(note);
     Note sNote = _notes[index];
     // notifyListeners();
-    return sNote.isFavorite;
+    return sNote.isFavorite!;
   }
 }
