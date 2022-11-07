@@ -24,11 +24,12 @@ class Note implements DatabaseModel {
         uuid: uuid,
         title: title ?? this.title,
         body: body ?? this.body,
-        updatedDate: DateTime.now(),
+        createdDate: createdDate,
+        updatedDate: title == this.title && body == this.body
+            ? updatedDate
+            : DateTime.now(),
         isFavorite: isFavorite ?? this.isFavorite,
       );
-
-  // String get displayName => '$title ($age years old)';
 
   @override
   bool operator ==(covariant Note other) => uuid == other.uuid;

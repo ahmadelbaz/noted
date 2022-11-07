@@ -28,11 +28,13 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Assign screen height and width to these global variables so we can use them in all screens
+    // deviceWidth = MediaQuery.of(context).size.width;
+    // deviceHeight = MediaQuery.of(context).size.height;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.dark,
-      // home: const HomePage(),
       routes: {
         '/': (context) => const NotesScreen(),
         '/add_edit_note': (context) => const AddEditNoteScreen(),
@@ -40,20 +42,3 @@ class App extends StatelessWidget {
     );
   }
 }
-
-// Class to let data load from database
-// class Home extends ConsumerWidget {
-//   const Home({super.key});
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final futureProvider = ref.watch(dataFutureProvider);
-//     return Scaffold(
-//       body: futureProvider.when(
-//         data: (data) => Navigator.of(context).pushNamed('/notes_screen'),
-//         error: ((error, stackTrace) => const Center()),
-//         loading: () => const Center(),
-//       ),
-//     );
-//   }
-// }

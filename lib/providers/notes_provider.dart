@@ -15,12 +15,22 @@ class NoteProvider extends ChangeNotifier {
   Note _currentNote = Note(title: '', body: '', isFavorite: false);
   Note get currentNote => _currentNote;
 
+  // Variable to hide current note
+  bool _canHide = false;
+  bool get canHide => _canHide;
+
   // Instance from database to use it in provider
   MyDatabase myDatabase = MyDatabase();
 
   // Method to set current note to the one that user are using right now
   setCurrentNote(Note note) {
     _currentNote = note;
+    notifyListeners();
+  }
+
+  // Hide current note
+  switchHideCurrentNote() {
+    _canHide = !canHide;
     notifyListeners();
   }
 

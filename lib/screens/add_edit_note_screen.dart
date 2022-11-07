@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:noted/consts.dart';
+import 'package:noted/functions/formate_date_time.dart';
+import 'package:noted/functions/onback_function.dart';
 import 'package:noted/main.dart';
+
+// Provider (State) to lock or unlockNotes
+final isLockedStateProvider = StateProvider<bool>(((ref) => false));
+
+// we use this node to easily tavel from textfield to another
+final _descriptionFocusNode = FocusNode();
 
 class AddEditNoteScreen extends ConsumerWidget {
   const AddEditNoteScreen({super.key});
@@ -8,64 +17,142 @@ class AddEditNoteScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
-    // final currentNoteProvider = ref.watch(currentNoteStateProvider);
-    // log('this is current note title ${currentNoteProvider.title}');
-    // String? title = !isNew! ? currentNoteProvider.title : '';
-    // String? body = !isNew! ? currentNoteProvider.body : '';
-    // bool? isFavorite = !isNew! ? currentNoteProvider.isFavorite : false;
-
-    // titleController.text = title;
-    // bodyController.text = body;
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Note'),
-      ),
-      body: Consumer(
-        builder: (context, ref, child) {
-          // log('Wrong this is current note title ${notesProvider.currentNote.title}');
-          // String? title = !isNew! ? notesProvider.currentNote.title : '';
-          // String? body = !isNew! ? notesProvider.currentNote.body : '';
-          return Column(
-            children: [
-              Expanded(
-                child: ListView(
+    var isLockedProvider = ref.watch(isLockedStateProvider);
+    return WillPopScope(
+      onWillPop: () {
+        return onWillPop(notesProvider, notesProvider.currentNote.title!,
+            notesProvider.currentNote.body!);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Note'),
+          actions: [
+            IconButton(
+              tooltip: isLockedProvider ? 'Unlock' : 'Lock',
+              icon: Icon(
+                isLockedProvider ? Icons.lock_open_rounded : Icons.lock_rounded,
+              ),
+              onPressed: () {
+                ref.read(isLockedStateProvider.notifier).state =
+                    !isLockedProvider;
+              },
+            )
+          ],
+        ),
+        body: Consumer(
+          builder: (context, ref, child) {
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
+                      SizedBox(
+                        height: deviceHeight * 0.025,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(deviceWidth * 0.025),
+                        child: TextFormField(
+                          initialValue: notesProvider.currentNote.title,
+                          decoration: InputDecoration(
+                            labelText: 'Title',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              borderSide: const BorderSide(),
+                            ),
+                          ),
+                          textInputAction: TextInputAction.next,
+                          // We check if the note has no title or body so turn on auto focus
+                          autofocus: notesProvider.currentNote.title == '' &&
+                                  notesProvider.currentNote.body == ''
+                              ? true
+                              : false,
+                          textCapitalization: TextCapitalization.sentences,
+                          onFieldSubmitted: (_) {
+                            FocusScope.of(context)
+                                .requestFocus(_descriptionFocusNode);
+                          },
+                          enabled: isLockedProvider ? false : true,
+                          onChanged: (value) async {
+                            await notesProvider.updateTitle(
+                              notesProvider.currentNote,
+                              value,
+                            );
+                          },
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(deviceWidth * 0.025),
+                        child: TextFormField(
+                          initialValue: notesProvider.currentNote.body,
+                          decoration: InputDecoration(
+                            labelText: 'Content',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              borderSide: const BorderSide(),
+                            ),
+                          ),
+                          textInputAction: TextInputAction.newline,
+                          textCapitalization: TextCapitalization.sentences,
+                          focusNode: _descriptionFocusNode,
+                          keyboardType: TextInputType.multiline,
+                          maxLines: null,
+                          enabled: isLockedProvider ? false : true,
+                          onChanged: (value) async {
+                            await notesProvider.updateBody(
+                                notesProvider.currentNote, value);
+                          },
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Toggle Favorite',
+                        onPressed: () {
+                          notesProvider
+                              .switchFavorite(notesProvider.currentNote);
+                        },
+                        icon: Icon(
+                          notesProvider.getFavorite(notesProvider.currentNote)
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    TextFormField(
-                      initialValue: notesProvider.currentNote.title,
-                      decoration: const InputDecoration(
-                        labelText: 'Enter title here...',
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          const Text('Created :'),
+                          Text(
+                            formatDateTime(
+                                notesProvider.currentNote.createdDate!),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ),
-                      onChanged: (value) async {
-                        await notesProvider.updateTitle(
-                            notesProvider.currentNote, value);
-                      },
                     ),
-                    TextFormField(
-                      initialValue: notesProvider.currentNote.body,
-                      decoration: const InputDecoration(
-                        labelText: 'Enter body here...',
-                      ),
-                      onChanged: (value) async {
-                        await notesProvider.updateBody(
-                            notesProvider.currentNote, value);
-                      },
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        notesProvider.switchFavorite(notesProvider.currentNote);
-                      },
-                      icon: Icon(
-                        notesProvider.getFavorite(notesProvider.currentNote)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          const Text('Last edit: :'),
+                          Text(
+                            formatDateTime(
+                                notesProvider.currentNote.updatedDate!),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-              ),
-            ],
-          );
-        },
+                )
+              ],
+            );
+          },
+        ),
       ),
     );
   }

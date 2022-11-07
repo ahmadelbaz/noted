@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:noted/consts.dart';
 import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
@@ -15,41 +16,80 @@ class NotesScreen extends ConsumerWidget {
       ),
       body: Consumer(
         builder: (context, ref, child) {
+          // Instance of the providers we need
           final futureProvider = ref.watch(dataFutureProvider);
           final notesProvider = ref.watch(notesChangeNotifierProvider);
           return futureProvider.when(
             skipLoadingOnReload: true,
-            data: (data) => ListView.builder(
-              itemCount: notesProvider.count,
-              itemBuilder: (context, index) {
-                final note = notesProvider.notes[index];
-                return ListTile(
-                  title: Text(
-                    note.title,
+            data: (data) {
+              deviceWidth = MediaQuery.of(context).size.width;
+              deviceHeight = MediaQuery.of(context).size.height;
+              return Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).primaryColor,
                   ),
-                  subtitle: Text(note.body),
-                  trailing: IconButton(
-                    onPressed: () => notesProvider.switchFavorite(note),
-                    icon: Icon(
-                      notesProvider.getFavorite(note)
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                    ),
-                  ),
-                  onTap: () async {
-                    notesProvider.setCurrentNote(note);
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AddEditNoteScreen(),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: EdgeInsets.symmetric(horizontal: deviceWidth * .06),
+                child: notesProvider.count < 1
+                    ? const Center(
+                        child: Text('Empty! Add Note'),
+                      )
+                    : ListView.builder(
+                        itemCount: notesProvider.count,
+                        itemBuilder: (context, index) {
+                          final note = notesProvider.notes[index];
+                          return note == notesProvider.currentNote &&
+                                  notesProvider.canHide
+                              ? Container()
+                              : Column(
+                                  children: [
+                                    Container(
+                                      margin:
+                                          EdgeInsets.all(deviceWidth * 0.02),
+                                      padding:
+                                          EdgeInsets.all(deviceWidth * 0.009),
+                                      child: ListTile(
+                                        title: Text(
+                                          note.title,
+                                          maxLines: 1,
+                                        ),
+                                        subtitle: Text(
+                                          note.body,
+                                          maxLines: 1,
+                                        ),
+                                        trailing: IconButton(
+                                          onPressed: () => notesProvider
+                                              .switchFavorite(note),
+                                          icon: Icon(
+                                            notesProvider.getFavorite(note)
+                                                ? Icons.favorite
+                                                : Icons.favorite_border,
+                                          ),
+                                        ),
+                                        onTap: () async {
+                                          notesProvider.setCurrentNote(note);
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const AddEditNoteScreen(),
+                                            ),
+                                          );
+                                        },
+                                        onLongPress: () {
+                                          notesProvider.remove(note);
+                                        },
+                                      ),
+                                    ),
+                                    // Divider to separate between items
+                                    const Divider(),
+                                  ],
+                                );
+                        },
                       ),
-                    );
-                  },
-                  onLongPress: () {
-                    notesProvider.remove(note);
-                  },
-                );
-              },
-            ),
+              );
+            },
             error: (error, stackTrace) => const Center(
               child: Text('Error 😅'),
             ),
@@ -74,7 +114,7 @@ class NotesScreen extends ConsumerWidget {
             ),
           );
         },
-        child: const Icon(Icons.send), //icon inside button
+        child: const Icon(Icons.note_add_rounded), //icon inside button
       ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
