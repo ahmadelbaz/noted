@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/providers/notes_provider.dart';
+import 'package:noted/screens/add_edit_note_screen.dart';
 import 'package:noted/screens/notes_screen.dart';
 
 // Provider (change notifier) for notes list
@@ -23,6 +24,7 @@ class App extends StatelessWidget {
       // home: const HomePage(),
       routes: {
         '/': (context) => const NotesScreen(),
+        '/add_edit_note': (context) => const AddEditNoteScreen(),
       },
     );
   }

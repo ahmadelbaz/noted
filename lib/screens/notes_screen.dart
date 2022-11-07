@@ -1,9 +1,13 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/main.dart';
-import 'package:noted/widgets/add_edit_note.dart';
+import 'package:noted/models/note.dart';
+import 'package:noted/screens/add_edit_note_screen.dart';
+
+// Provider (State) to detect which note we are using right now
+// final currentNoteStateProvider = StateProvider<Note>(
+//   (ref) => Note(title: 'SS', body: 'DD', isFavorite: true),
+// );
 
 class NotesScreen extends ConsumerWidget {
   const NotesScreen({super.key});
@@ -26,13 +30,26 @@ class NotesScreen extends ConsumerWidget {
                   note.title,
                 ),
                 subtitle: Text(note.body),
+                trailing: IconButton(
+                  onPressed: () {
+                    // isFavorite = !isFavorite!;
+                    notesProvider.switchFavorite(note);
+                  },
+                  icon: Icon(
+                    notesProvider.getFavorite(note)
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                  ),
+                ),
                 onTap: () async {
-                  log('index of 1: ${notesProvider.notes.indexOf(note)}');
-                  final updatedNote = await addOrUpdateDialog(context, note);
-                  log('index of 2: ${notesProvider.notes.indexOf(updatedNote)}');
-                  if (updatedNote != null) {
-                    notesProvider.update(updatedNote);
-                  }
+                  notesProvider.setCurrentNote(note);
+                  // final updatedNote =
+                  // await addOrUpdateDialog(context, notesProvider, note);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AddEditNoteScreen(),
+                    ),
+                  );
                 },
               );
             }),
@@ -41,13 +58,21 @@ class NotesScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final newNote = await addOrUpdateDialog(context);
-          if (newNote != null) {
-            final peopleProvider = ref.read(notesChangeNotifierProvider);
-            peopleProvider.add(newNote);
-          }
+          // final newNote = await addOrUpdateDialog(
+          //     context, ref.watch(notesChangeNotifierProvider));
+          // if (newNote != null) {
+          // }
+          final newNote = Note(title: '', body: '', isFavorite: false);
+          final notesProvider = ref.read(notesChangeNotifierProvider);
+          notesProvider.add(newNote);
+          notesProvider.setCurrentNote(newNote);
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => const AddEditNoteScreen(),
+            ),
+          );
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add), // TODO : Check the note with good FAB
       ),
     );
   }
