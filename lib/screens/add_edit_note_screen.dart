@@ -1,3 +1,4 @@
+import 'package:auto_direction/auto_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/consts.dart';
@@ -51,56 +52,64 @@ class AddEditNoteScreen extends ConsumerWidget {
                       ),
                       Padding(
                         padding: EdgeInsets.all(deviceWidth * 0.025),
-                        child: TextFormField(
-                          initialValue: notesProvider.currentNote.title,
-                          decoration: InputDecoration(
-                            labelText: 'Title',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(),
+                        child: AutoDirection(
+                          text: notesProvider.currentNote.title!,
+                          child: TextFormField(
+                            initialValue: notesProvider.currentNote.title,
+                            decoration: InputDecoration(
+                              labelText: 'Title',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                borderSide: const BorderSide(),
+                              ),
                             ),
+                            textInputAction: TextInputAction.next,
+                            // We check if the note has no title or body so turn on auto focus
+                            autofocus: notesProvider.currentNote.title == '' &&
+                                    notesProvider.currentNote.body == ''
+                                ? true
+                                : false,
+                            textCapitalization: TextCapitalization.sentences,
+                            onFieldSubmitted: (_) {
+                              FocusScope.of(context)
+                                  .requestFocus(_descriptionFocusNode);
+                            },
+                            enabled: isLockedProvider ? false : true,
+                            onChanged: (value) async {
+                              await notesProvider.updateTitle(
+                                notesProvider.currentNote,
+                                value,
+                              );
+                            },
                           ),
-                          textInputAction: TextInputAction.next,
-                          // We check if the note has no title or body so turn on auto focus
-                          autofocus: notesProvider.currentNote.title == '' &&
-                                  notesProvider.currentNote.body == ''
-                              ? true
-                              : false,
-                          textCapitalization: TextCapitalization.sentences,
-                          onFieldSubmitted: (_) {
-                            FocusScope.of(context)
-                                .requestFocus(_descriptionFocusNode);
-                          },
-                          enabled: isLockedProvider ? false : true,
-                          onChanged: (value) async {
-                            await notesProvider.updateTitle(
-                              notesProvider.currentNote,
-                              value,
-                            );
-                          },
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.all(deviceWidth * 0.025),
-                        child: TextFormField(
-                          initialValue: notesProvider.currentNote.body,
-                          decoration: InputDecoration(
-                            labelText: 'Content',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25.0),
-                              borderSide: const BorderSide(),
+                        child: AutoDirection(
+                          text: notesProvider.currentNote.body!,
+                          child: TextFormField(
+                            initialValue: notesProvider.currentNote.body,
+                            decoration: InputDecoration(
+                              labelText: 'Content',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                borderSide: const BorderSide(),
+                              ),
                             ),
+                            textInputAction: TextInputAction.newline,
+                            textCapitalization: TextCapitalization.sentences,
+                            focusNode: _descriptionFocusNode,
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            enabled: isLockedProvider ? false : true,
+                            onChanged: (value) async {
+                              await notesProvider.updateBody(
+                                notesProvider.currentNote,
+                                value,
+                              );
+                            },
                           ),
-                          textInputAction: TextInputAction.newline,
-                          textCapitalization: TextCapitalization.sentences,
-                          focusNode: _descriptionFocusNode,
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          enabled: isLockedProvider ? false : true,
-                          onChanged: (value) async {
-                            await notesProvider.updateBody(
-                                notesProvider.currentNote, value);
-                          },
                         ),
                       ),
                       IconButton(
@@ -110,7 +119,9 @@ class AddEditNoteScreen extends ConsumerWidget {
                               .switchFavorite(notesProvider.currentNote);
                         },
                         icon: Icon(
-                          notesProvider.getFavorite(notesProvider.currentNote)
+                          notesProvider.getFavorite(
+                            notesProvider.currentNote,
+                          )
                               ? Icons.favorite
                               : Icons.favorite_border,
                         ),
@@ -128,7 +139,8 @@ class AddEditNoteScreen extends ConsumerWidget {
                           const Text('Created :'),
                           Text(
                             formatDateTime(
-                                notesProvider.currentNote.createdDate!),
+                              notesProvider.currentNote.createdDate!,
+                            ),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ],
@@ -141,7 +153,8 @@ class AddEditNoteScreen extends ConsumerWidget {
                           const Text('Last edit: :'),
                           Text(
                             formatDateTime(
-                                notesProvider.currentNote.updatedDate!),
+                              notesProvider.currentNote.updatedDate!,
+                            ),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ],

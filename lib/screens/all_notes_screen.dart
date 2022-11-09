@@ -1,3 +1,4 @@
+import 'package:auto_direction/auto_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/consts.dart';
@@ -27,13 +28,19 @@ class AllNotesScreen extends ConsumerWidget {
                           margin: EdgeInsets.all(deviceWidth * 0.02),
                           padding: EdgeInsets.all(deviceWidth * 0.009),
                           child: ListTile(
-                            title: Text(
-                              note.title,
-                              maxLines: 1,
+                            title: AutoDirection(
+                              text: note.title,
+                              child: Text(
+                                note.title,
+                                maxLines: 1,
+                              ),
                             ),
-                            subtitle: Text(
-                              note.body,
-                              maxLines: 1,
+                            subtitle: AutoDirection(
+                              text: note.body,
+                              child: Text(
+                                note.body,
+                                maxLines: 1,
+                              ),
                             ),
                             trailing: IconButton(
                               onPressed: () =>
