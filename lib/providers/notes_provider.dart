@@ -100,4 +100,7 @@ class NoteProvider extends ChangeNotifier {
     // notifyListeners();
     return sNote.isFavorite!;
   }
+
+  // Method to search with
+
 }

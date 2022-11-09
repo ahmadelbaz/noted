@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/consts.dart';
 import 'package:noted/main.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
+import 'package:noted/screens/notes_screen.dart';
 
 class AllNotesScreen extends ConsumerWidget {
   bool? isNormalMode;
@@ -12,6 +13,8 @@ class AllNotesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
+    final searchProvider = ref.watch(inSearchModeStateProvider);
+    final searchTextProvider = ref.watch(searchTextStateProvider);
     return notesProvider.count < 1
         ? const Center(
             child: Text('Empty! Add Note'),
@@ -20,55 +23,66 @@ class AllNotesScreen extends ConsumerWidget {
             itemCount: notesProvider.count,
             itemBuilder: (context, index) {
               final note = notesProvider.notes[index];
+              // First we check if we are in favorite tab or all notes tab, to decide which notes will appear
               return !isNormalMode! && !note.isFavorite
                   ? Container()
-                  : Column(
-                      children: [
-                        Container(
-                          margin: EdgeInsets.all(deviceWidth * 0.02),
-                          padding: EdgeInsets.all(deviceWidth * 0.009),
-                          child: ListTile(
-                            title: AutoDirection(
-                              text: note.title,
-                              child: Text(
-                                note.title,
-                                maxLines: 1,
-                              ),
-                            ),
-                            subtitle: AutoDirection(
-                              text: note.body,
-                              child: Text(
-                                note.body,
-                                maxLines: 1,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              onPressed: () =>
-                                  notesProvider.switchFavorite(note),
-                              icon: Icon(
-                                notesProvider.getFavorite(note)
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                              ),
-                            ),
-                            onTap: () async {
-                              notesProvider.setCurrentNote(note);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const AddEditNoteScreen(),
+                  // Then we check if we are in search mode and if we are searching about some specific text
+                  : searchProvider &&
+                          (!note.title
+                                  .toLowerCase()
+                                  .contains(searchTextProvider.toLowerCase()) &&
+                              !note.body
+                                  .toLowerCase()
+                                  .contains(searchTextProvider.toLowerCase()))
+                      ? Container()
+                      // Then shows notes that achive the conditions
+                      : Column(
+                          children: [
+                            Container(
+                              margin: EdgeInsets.all(deviceWidth * 0.02),
+                              padding: EdgeInsets.all(deviceWidth * 0.009),
+                              child: ListTile(
+                                title: AutoDirection(
+                                  text: note.title,
+                                  child: Text(
+                                    note.title,
+                                    maxLines: 1,
+                                  ),
                                 ),
-                              );
-                            },
-                            onLongPress: () {
-                              notesProvider.remove(note);
-                            },
-                          ),
-                        ),
-                        // Divider to separate between items
-                        const Divider(),
-                      ],
-                    );
+                                subtitle: AutoDirection(
+                                  text: note.body,
+                                  child: Text(
+                                    note.body,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                                trailing: IconButton(
+                                  onPressed: () =>
+                                      notesProvider.switchFavorite(note),
+                                  icon: Icon(
+                                    notesProvider.getFavorite(note)
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                  ),
+                                ),
+                                onTap: () async {
+                                  notesProvider.setCurrentNote(note);
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AddEditNoteScreen(),
+                                    ),
+                                  );
+                                },
+                                onLongPress: () {
+                                  notesProvider.remove(note);
+                                },
+                              ),
+                            ),
+                            // Divider to separate between items
+                            const Divider(),
+                          ],
+                        );
             },
           );
   }

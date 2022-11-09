@@ -11,11 +11,16 @@ import 'package:noted/screens/add_edit_note_screen.dart';
 import 'package:noted/screens/all_notes_screen.dart';
 import 'package:noted/widgets/drawer.dart';
 
-TabController? tabController;
+// Provider (State) to switch search mode
+final inSearchModeStateProvider = StateProvider<bool>(((ref) => false));
+
+// Provider (State) for the text we want to search with
+final searchTextStateProvider = StateProvider<String>(((ref) => ''));
 
 class NotesScreen extends ConsumerWidget {
   const NotesScreen({super.key});
 
+  // Method to close the app when we call it
   static Future<void> pop({bool? animated}) async {
     await SystemChannels.platform
         .invokeMethod<void>('SystemNavigator.pop', animated);
@@ -23,12 +28,19 @@ class NotesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Golobal key to the tab bar to controll it more
     GlobalKey<ContainedTabBarViewState> key = GlobalKey();
+
+    // Instance of providers we need
+    var searchProvider = ref.watch(inSearchModeStateProvider);
     return DefaultTabController(
+      // Length of tabs (We will change it later to be dynamic maybe to add categories)
       length: 2,
+      // We add willpopscope to controll when user click back button
       child: WillPopScope(
         onWillPop: () async {
-          log('${key.currentState?.indexIsChanging}');
+          // We try to check if user in another tab that isn't the first one
+          // Its not the best way to do it, and we will try to fix it in the future
           key.currentState!.animateTo(0, duration: const Duration(seconds: 1));
           if (key.currentState!.indexIsChanging) {
           } else {
@@ -43,10 +55,38 @@ class NotesScreen extends ConsumerWidget {
             headerSliverBuilder:
                 (BuildContext context, bool innerBoxIsScrolled) {
               return <Widget>[
-                const SliverAppBar(
+                SliverAppBar(
                   floating: true,
-                  pinned: true,
-                  title: Text('Noted'),
+                  snap: true,
+                  // pinned: true,
+                  // We check if we are in search mode so we change appbar title to textfield
+                  title: searchProvider
+                      ? TextField(
+                          decoration: const InputDecoration(
+                            labelText: 'Search',
+                          ),
+                          autofocus: true,
+                          onChanged: (value) {
+                            ref.read(searchTextStateProvider.notifier).state =
+                                value;
+                          },
+                        )
+                      : const Text('Noted'),
+                  actions: [
+                    IconButton(
+                      onPressed: () {
+                        ref.read(inSearchModeStateProvider.notifier).state =
+                            !ref.read(inSearchModeStateProvider.notifier).state;
+                        log('search mode ? ${ref.watch(inSearchModeStateProvider)}');
+                      },
+                      icon: Icon(
+                        // We check if we are in search mode to change the search icon to close
+                        searchProvider
+                            ? Icons.cancel_rounded
+                            : Icons.search_rounded,
+                      ),
+                    ),
+                  ],
                 ),
               ];
             },
@@ -69,6 +109,9 @@ class NotesScreen extends ConsumerWidget {
                       margin:
                           EdgeInsets.symmetric(horizontal: deviceWidth * .06),
                       child: ContainedTabBarView(
+                        tabBarProperties: const TabBarProperties(
+                          position: TabBarPosition.bottom,
+                        ),
                         key: key,
                         tabs: const [
                           Icon(
@@ -101,19 +144,22 @@ class NotesScreen extends ConsumerWidget {
               },
             ),
           ),
-
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              final newNote = Note(title: '', body: '', isFavorite: false);
-              final notesProvider = ref.watch(notesChangeNotifierProvider);
-              notesProvider.add(newNote);
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AddEditNoteScreen(),
-                ),
-              );
-            },
-            child: const Icon(Icons.note_add_rounded),
+          floatingActionButton: Padding(
+            padding: EdgeInsets.only(bottom: deviceHeight * 0.04),
+            child: FloatingActionButton(
+              tooltip: 'Add Note',
+              onPressed: () {
+                final newNote = Note(title: '', body: '', isFavorite: false);
+                final notesProvider = ref.watch(notesChangeNotifierProvider);
+                notesProvider.add(newNote);
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AddEditNoteScreen(),
+                  ),
+                );
+              },
+              child: const Icon(Icons.note_add_rounded),
+            ),
           ),
         ),
       ),
