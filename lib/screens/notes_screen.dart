@@ -30,15 +30,24 @@ class NotesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Golobal key to the tab bar to controll it more
     GlobalKey<ContainedTabBarViewState> key = GlobalKey();
-
     // Instance of providers we need
-    var searchProvider = ref.watch(inSearchModeStateProvider);
+    final notesProvider = ref.watch(notesChangeNotifierProvider);
+    final searchProvider = ref.watch(inSearchModeStateProvider);
+    final selectionProvider = ref.watch(inSelectionModeStateProvider);
     return DefaultTabController(
       // Length of tabs (We will change it later to be dynamic maybe to add categories)
       length: 2,
       // We add willpopscope to controll when user click back button
       child: WillPopScope(
         onWillPop: () async {
+          // First we check if we are in selection mode
+          // If yes we close it first
+          if (selectionProvider.keys.first) {
+            ref.read(inSelectionModeStateProvider.notifier).state = {
+              false: false
+            };
+            return false;
+          }
           // We try to check if user in another tab that isn't the first one
           // Its not the best way to do it, and we will try to fix it in the future
           key.currentState!.animateTo(0, duration: const Duration(seconds: 1));
@@ -58,35 +67,67 @@ class NotesScreen extends ConsumerWidget {
                 SliverAppBar(
                   floating: true,
                   snap: true,
-                  // pinned: true,
-                  // We check if we are in search mode so we change appbar title to textfield
-                  title: searchProvider
-                      ? TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Search',
-                          ),
-                          autofocus: true,
-                          onChanged: (value) {
-                            ref.read(searchTextStateProvider.notifier).state =
-                                value;
+                  // We check if we are in selection mode so we turn the title into clsoing iconbutton
+                  title: selectionProvider.keys.first
+                      ? IconButton(
+                          onPressed: () {
+                            ref
+                                .read(inSelectionModeStateProvider.notifier)
+                                .state = {false: false};
                           },
+                          icon: const Icon(Icons.cancel_rounded),
                         )
-                      : const Text('Noted'),
-                  actions: [
-                    IconButton(
-                      onPressed: () {
-                        ref.read(inSearchModeStateProvider.notifier).state =
-                            !ref.read(inSearchModeStateProvider.notifier).state;
-                        log('search mode ? ${ref.watch(inSearchModeStateProvider)}');
-                      },
-                      icon: Icon(
-                        // We check if we are in search mode to change the search icon to close
-                        searchProvider
-                            ? Icons.cancel_rounded
-                            : Icons.search_rounded,
-                      ),
-                    ),
-                  ],
+                      // Then we check if we are in search mode so we change appbar title to textfield
+                      : searchProvider
+                          ? TextField(
+                              decoration: const InputDecoration(
+                                labelText: 'Search',
+                              ),
+                              autofocus: true,
+                              onChanged: (value) {
+                                ref
+                                    .read(searchTextStateProvider.notifier)
+                                    .state = value;
+                              },
+                            )
+                          : const Text('Noted'),
+                  // We check if we are in selection mode to change th whole actions list
+                  actions: selectionProvider.keys.first
+                      ? [
+                          IconButton(
+                            onPressed: () {},
+                            icon: const Icon(Icons.share_rounded),
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              notesProvider
+                                  .remove(selectionProvider.values.first);
+                              ref
+                                  .read(inSelectionModeStateProvider.notifier)
+                                  .state = {false: false};
+                            },
+                            icon: const Icon(Icons.delete),
+                          ),
+                        ]
+                      : [
+                          IconButton(
+                            onPressed: () {
+                              ref
+                                      .read(inSearchModeStateProvider.notifier)
+                                      .state =
+                                  !ref
+                                      .read(inSearchModeStateProvider.notifier)
+                                      .state;
+                              log('search mode ? ${ref.watch(inSearchModeStateProvider)}');
+                            },
+                            icon: Icon(
+                              // We check if we are in search mode to change the search icon to close
+                              searchProvider
+                                  ? Icons.cancel_rounded
+                                  : Icons.search_rounded,
+                            ),
+                          ),
+                        ],
                 ),
               ];
             },
@@ -114,14 +155,8 @@ class NotesScreen extends ConsumerWidget {
                         ),
                         key: key,
                         tabs: const [
-                          Icon(
-                            Icons.notes_rounded,
-                            color: Colors.white,
-                          ),
-                          Icon(
-                            Icons.favorite,
-                            color: Colors.white,
-                          ),
+                          Text('All'),
+                          Text('Favorites'),
                         ],
                         views: [
                           AllNotesScreen(

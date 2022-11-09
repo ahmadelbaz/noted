@@ -6,6 +6,11 @@ import 'package:noted/main.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
 import 'package:noted/screens/notes_screen.dart';
 
+// Provider (State) to switch selection note (after long tab on note)
+final inSelectionModeStateProvider = StateProvider<Map<bool, dynamic>>(
+  (ref) => {false: false},
+);
+
 class AllNotesScreen extends ConsumerWidget {
   bool? isNormalMode;
   AllNotesScreen({this.isNormalMode, super.key});
@@ -15,6 +20,7 @@ class AllNotesScreen extends ConsumerWidget {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final searchProvider = ref.watch(inSearchModeStateProvider);
     final searchTextProvider = ref.watch(searchTextStateProvider);
+    final selectionProvider = ref.watch(inSelectionModeStateProvider);
     return notesProvider.count < 1
         ? const Center(
             child: Text('Empty! Add Note'),
@@ -39,8 +45,25 @@ class AllNotesScreen extends ConsumerWidget {
                       : Column(
                           children: [
                             Container(
+                              // We check if we are in selection mode and this is the selected note
+                              // We add special border around it
+                              decoration: selectionProvider.keys.first &&
+                                      selectionProvider.values.first == note
+                                  ? BoxDecoration(
+                                      border: Border.all(
+                                        width: 3,
+                                        color: Colors.teal,
+                                      ),
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(
+                                          10.0,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
                               margin: EdgeInsets.all(deviceWidth * 0.02),
                               padding: EdgeInsets.all(deviceWidth * 0.009),
+                              // color: Colors.teal,
                               child: ListTile(
                                 title: AutoDirection(
                                   text: note.title,
@@ -75,7 +98,14 @@ class AllNotesScreen extends ConsumerWidget {
                                   );
                                 },
                                 onLongPress: () {
-                                  notesProvider.remove(note);
+                                  ref
+                                      .read(inSearchModeStateProvider.notifier)
+                                      .state = false;
+                                  ref
+                                      .read(
+                                          inSelectionModeStateProvider.notifier)
+                                      .state = {true: note};
+                                  // notesProvider.remove(note);
                                 },
                               ),
                             ),
