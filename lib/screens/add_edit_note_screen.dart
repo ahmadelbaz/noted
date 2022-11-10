@@ -2,6 +2,7 @@ import 'package:auto_direction/auto_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/consts.dart';
+import 'package:noted/functions/color_dialog.dart';
 import 'package:noted/functions/formate_date_time.dart';
 import 'package:noted/functions/onback_function.dart';
 import 'package:noted/main.dart';
@@ -25,9 +26,19 @@ class AddEditNoteScreen extends ConsumerWidget {
             notesProvider.currentNote.body!);
       },
       child: Scaffold(
+        backgroundColor: notesProvider.currentNote.color,
         appBar: AppBar(
           title: const Text('Note'),
           actions: [
+            IconButton(
+              tooltip: 'Change color',
+              icon: const Icon(
+                Icons.color_lens_rounded,
+              ),
+              onPressed: () async {
+                await colorDialog(context, ref, notesProvider.currentNote);
+              },
+            ),
             IconButton(
               tooltip: isLockedProvider ? 'Unlock' : 'Lock',
               icon: Icon(
@@ -37,7 +48,7 @@ class AddEditNoteScreen extends ConsumerWidget {
                 ref.read(isLockedStateProvider.notifier).state =
                     !isLockedProvider;
               },
-            )
+            ),
           ],
         ),
         body: Consumer(
@@ -129,39 +140,56 @@ class AddEditNoteScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          const Text('Created :'),
-                          Text(
-                            formatDateTime(
-                              notesProvider.currentNote.createdDate!,
+                notesProvider.currentNote.createdDate!.millisecondsSinceEpoch ==
+                        notesProvider
+                            .currentNote.updatedDate!.millisecondsSinceEpoch
+                    ? Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            const Text('Created :'),
+                            Text(
+                              formatDateTime(
+                                notesProvider.currentNote.createdDate!,
+                              ),
+                              style: const TextStyle(fontSize: 12),
                             ),
-                            style: const TextStyle(fontSize: 12),
+                          ],
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                const Text('Created :'),
+                                Text(
+                                  formatDateTime(
+                                    notesProvider.currentNote.createdDate!,
+                                  ),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                const Text('Last edit: :'),
+                                Text(
+                                  formatDateTime(
+                                    notesProvider.currentNote.updatedDate!,
+                                  ),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          const Text('Last edit: :'),
-                          Text(
-                            formatDateTime(
-                              notesProvider.currentNote.updatedDate!,
-                            ),
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
+                      )
               ],
             );
           },

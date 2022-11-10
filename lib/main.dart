@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/providers/notes_provider.dart';
@@ -10,13 +8,16 @@ import 'package:noted/screens/notes_screen.dart';
 final notesChangeNotifierProvider =
     ChangeNotifierProvider((ref) => NoteProvider());
 
+// Provider (Future) to get the data saved in db before UI
 final dataFutureProvider = FutureProvider(
   (ref) async {
-    log('Trying to get the data');
-    // final selected =
     await ref.watch(notesChangeNotifierProvider).getAllNotes();
-    // return selected;
   },
+);
+
+// Provider (State) to use it when we want to change color of any note
+final newColorStateProvider = StateProvider<Color>(
+  (ref) => Colors.transparent,
 );
 
 void main() {

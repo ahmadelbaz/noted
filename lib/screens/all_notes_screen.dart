@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_direction/auto_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,6 +23,7 @@ class AllNotesScreen extends ConsumerWidget {
     final searchProvider = ref.watch(inSearchModeStateProvider);
     final searchTextProvider = ref.watch(searchTextStateProvider);
     final selectionProvider = ref.watch(inSelectionModeStateProvider);
+    log('normal mode ? $isNormalMode');
     return notesProvider.count < 1
         ? const Center(
             child: Text('Empty! Add Note'),
@@ -45,22 +48,23 @@ class AllNotesScreen extends ConsumerWidget {
                       : Column(
                           children: [
                             Container(
-                              // We check if we are in selection mode and this is the selected note
-                              // We add special border around it
-                              decoration: selectionProvider.keys.first &&
-                                      selectionProvider.values.first == note
-                                  ? BoxDecoration(
-                                      border: Border.all(
+                              decoration: BoxDecoration(
+                                color: note.color,
+                                // We check if we are in selection mode and this is the selected note
+                                // We add special border around it
+                                border: selectionProvider.keys.first &&
+                                        selectionProvider.values.first == note
+                                    ? Border.all(
                                         width: 3,
                                         color: Colors.teal,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(
-                                          10.0,
-                                        ),
-                                      ),
-                                    )
-                                  : null,
+                                      )
+                                    : null,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(
+                                    10.0,
+                                  ),
+                                ),
+                              ),
                               margin: EdgeInsets.all(deviceWidth * 0.02),
                               padding: EdgeInsets.all(deviceWidth * 0.009),
                               // color: Colors.teal,

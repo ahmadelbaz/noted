@@ -1,10 +1,10 @@
-import 'dart:developer';
-
 import 'package:contained_tab_bar_view/contained_tab_bar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:noted/consts.dart';
+import 'package:noted/functions/color_dialog.dart';
+import 'package:noted/functions/share.dart';
 import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
@@ -17,6 +17,11 @@ final inSearchModeStateProvider = StateProvider<bool>(((ref) => false));
 // Provider (State) for the text we want to search with
 final searchTextStateProvider = StateProvider<String>(((ref) => ''));
 
+// Golobal key to the tab bar to controll it more
+GlobalKey<ContainedTabBarViewState> tabKey =
+    GlobalKey<ContainedTabBarViewState>();
+
+// Main screen of the app that has the List of notes and other widgets (drawer, appbar etc.)
 class NotesScreen extends ConsumerWidget {
   const NotesScreen({super.key});
 
@@ -28,8 +33,6 @@ class NotesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Golobal key to the tab bar to controll it more
-    GlobalKey<ContainedTabBarViewState> key = GlobalKey();
     // Instance of providers we need
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final searchProvider = ref.watch(inSearchModeStateProvider);
@@ -50,8 +53,9 @@ class NotesScreen extends ConsumerWidget {
           }
           // We try to check if user in another tab that isn't the first one
           // Its not the best way to do it, and we will try to fix it in the future
-          key.currentState!.animateTo(0, duration: const Duration(seconds: 1));
-          if (key.currentState!.indexIsChanging) {
+          tabKey.currentState!
+              .animateTo(0, duration: const Duration(seconds: 1));
+          if (tabKey.currentState!.indexIsChanging) {
           } else {
             pop();
           }
@@ -70,6 +74,7 @@ class NotesScreen extends ConsumerWidget {
                   // We check if we are in selection mode so we turn the title into clsoing iconbutton
                   title: selectionProvider.keys.first
                       ? IconButton(
+                          tooltip: 'Close',
                           onPressed: () {
                             ref
                                 .read(inSelectionModeStateProvider.notifier)
@@ -95,10 +100,29 @@ class NotesScreen extends ConsumerWidget {
                   actions: selectionProvider.keys.first
                       ? [
                           IconButton(
-                            onPressed: () {},
+                            tooltip: 'Change color',
+                            onPressed: () async {
+                              await colorDialog(
+                                  context, ref, selectionProvider.values.first);
+                              ref
+                                  .read(inSelectionModeStateProvider.notifier)
+                                  .state = {false: false};
+                            },
+                            icon: const Icon(Icons.color_lens),
+                          ),
+                          IconButton(
+                            tooltip: 'Share note',
+                            onPressed: () async {
+                              await shareNote(
+                                  context, selectionProvider.values.first);
+                              ref
+                                  .read(inSelectionModeStateProvider.notifier)
+                                  .state = {false: false};
+                            },
                             icon: const Icon(Icons.share_rounded),
                           ),
                           IconButton(
+                            tooltip: 'Delete note',
                             onPressed: () {
                               notesProvider
                                   .remove(selectionProvider.values.first);
@@ -111,6 +135,7 @@ class NotesScreen extends ConsumerWidget {
                         ]
                       : [
                           IconButton(
+                            tooltip: 'Search',
                             onPressed: () {
                               ref
                                       .read(inSearchModeStateProvider.notifier)
@@ -118,7 +143,6 @@ class NotesScreen extends ConsumerWidget {
                                   !ref
                                       .read(inSearchModeStateProvider.notifier)
                                       .state;
-                              log('search mode ? ${ref.watch(inSearchModeStateProvider)}');
                             },
                             icon: Icon(
                               // We check if we are in search mode to change the search icon to close
@@ -153,7 +177,7 @@ class NotesScreen extends ConsumerWidget {
                         tabBarProperties: const TabBarProperties(
                           position: TabBarPosition.bottom,
                         ),
-                        key: key,
+                        key: tabKey,
                         tabs: const [
                           Text('All'),
                           Text('Favorites'),

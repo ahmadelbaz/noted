@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:noted/models/database_model.dart';
 import 'package:uuid/uuid.dart';
 
@@ -9,18 +10,21 @@ class Note implements DatabaseModel {
   DateTime? createdDate;
   DateTime? updatedDate;
   bool? isFavorite;
-  Note({
-    String? uuid,
-    required this.title,
-    required this.body,
-    DateTime? createdDate,
-    DateTime? updatedDate,
-    required this.isFavorite,
-  })  : uuid = uuid ?? const Uuid().v4(),
+  Color? color;
+  Note(
+      {String? uuid,
+      required this.title,
+      required this.body,
+      DateTime? createdDate,
+      DateTime? updatedDate,
+      required this.isFavorite,
+      Color? color})
+      : uuid = uuid ?? const Uuid().v4(),
         createdDate = createdDate ?? DateTime.now(),
-        updatedDate = updatedDate ?? DateTime.now();
+        updatedDate = updatedDate ?? DateTime.now(),
+        color = color ?? Colors.transparent;
 
-  Note updated([String? title, body, bool? isFavorite]) => Note(
+  Note updated([String? title, body, bool? isFavorite, Color? color]) => Note(
         uuid: uuid,
         title: title ?? this.title,
         body: body ?? this.body,
@@ -29,6 +33,7 @@ class Note implements DatabaseModel {
             ? updatedDate
             : DateTime.now(),
         isFavorite: isFavorite ?? this.isFavorite,
+        color: color ?? this.color,
       );
 
   @override
@@ -42,19 +47,22 @@ class Note implements DatabaseModel {
 
   // Handle the data that is coming from db
   Note.fromMap(Map<String, dynamic> map) {
-    // Convert int to DateTime (becauze we cant store DateTime type in sqlite)
+    // Convert int to DateTime (because we cant store DateTime type in sqlite)
     DateTime newCreatedDateTime =
         DateTime.fromMillisecondsSinceEpoch(map['createddate']);
     DateTime newUpdatedDateTime =
         DateTime.fromMillisecondsSinceEpoch(map['updateddate']);
     // Convert int to bool (cuz sqlite doesn't have bool so we use int instead)
     final newIsFavorite = map['isfavorite'] == 1 ? true : false;
+    // Conver int to color
+    Color newColor = Color(map['color']);
     uuid = map['id'];
     title = map['title'];
     body = map['body'];
     createdDate = newCreatedDateTime;
     updatedDate = newUpdatedDateTime;
     isFavorite = newIsFavorite;
+    color = newColor;
   }
 
   @override
@@ -79,7 +87,8 @@ class Note implements DatabaseModel {
     int storedUpdatedDateTime = updatedDate!.millisecondsSinceEpoch;
     // Convert bool to int to store it in db
     final newIsFavorite = isFavorite ?? false ? 1 : 0;
-
+    // Conver color to int to store it in db
+    int storedColor = color!.value;
     return {
       'id': uuid,
       'title': title,
@@ -87,6 +96,7 @@ class Note implements DatabaseModel {
       'createddate': storedCreatedDateTime,
       'updateddate': storedUpdatedDateTime,
       'isfavorite': newIsFavorite,
+      'color': storedColor,
     };
   }
 }

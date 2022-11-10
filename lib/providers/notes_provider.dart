@@ -6,10 +6,15 @@ import 'package:noted/models/note.dart';
 
 class NoteProvider extends ChangeNotifier {
   List<Note> _notes = [];
+  UnmodifiableListView get notes => UnmodifiableListView(_notes);
 
+  // Method to get all notes length
   int get count => _notes.length;
 
-  UnmodifiableListView get notes => UnmodifiableListView(_notes);
+  // Method to get all notes
+  List<Note> getAll() {
+    return _notes;
+  }
 
   // Variable to detect current note we are working on right now
   Note _currentNote = Note(title: '', body: '', isFavorite: false);
@@ -57,6 +62,7 @@ class NoteProvider extends ChangeNotifier {
       newTitle,
       note.body,
       note.isFavorite,
+      note.color,
     );
     await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
@@ -72,6 +78,7 @@ class NoteProvider extends ChangeNotifier {
       note.title,
       newBody,
       note.isFavorite,
+      note.color,
     );
     await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
@@ -87,6 +94,7 @@ class NoteProvider extends ChangeNotifier {
       note.title,
       note.body,
       !note.isFavorite!,
+      note.color,
     );
     await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
@@ -99,5 +107,22 @@ class NoteProvider extends ChangeNotifier {
     Note sNote = _notes[index];
     // notifyListeners();
     return sNote.isFavorite!;
+  }
+
+  // Method to update color of specific note
+  // Method to update body
+  Future<void> updateColor(Note note, Color newColor) async {
+    await myDatabase.notesDatabase();
+    final index = _notes.indexOf(note);
+    Note selectedNote = _notes[index];
+    _notes[index] = selectedNote.updated(
+      note.title,
+      note.body,
+      note.isFavorite,
+      newColor,
+    );
+    await myDatabase.update(_notes[index]);
+    _currentNote = _notes[index];
+    notifyListeners();
   }
 }

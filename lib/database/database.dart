@@ -11,7 +11,7 @@ class MyDatabase extends ChangeNotifier {
       // Deleting the table, and any data associated with it, from the database if it exists.
       batch.execute('DROP TABLE IF EXISTS notes');
       batch.execute('''CREATE TABLE notes (
-    id TEXT PRIMARY KEY, title TEXT, body TEXT, createddate INTEGER, updateddate INTEGER, isfavorite INTEGER
+    id TEXT PRIMARY KEY, title TEXT, body TEXT, createddate INTEGER, updateddate INTEGER, isfavorite INTEGER, color INTEGER
 )''');
     }
 
