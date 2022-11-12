@@ -19,14 +19,22 @@ class AddEditNoteScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
-    var isLockedProvider = ref.watch(isLockedStateProvider);
+    final isLockedProvider = ref.watch(isLockedStateProvider);
+    final isDarkProvider = ref.watch(isDarkStateProvider);
     return WillPopScope(
       onWillPop: () {
         return onWillPop(notesProvider, notesProvider.currentNote.title!,
             notesProvider.currentNote.body!);
       },
       child: Scaffold(
-        backgroundColor: notesProvider.currentNote.color,
+        // We check if the note has color or just transparent
+        // If it has color just set the backgoround with it
+        // If it is transparent, the background color will depend on theme dark or light
+        backgroundColor: notesProvider.currentNote.color == Colors.transparent
+            ? isDarkProvider
+                ? const Color(0xFF303030)
+                : Colors.white
+            : notesProvider.currentNote.color,
         appBar: AppBar(
           title: const Text('Note'),
           actions: [
@@ -100,8 +108,13 @@ class AddEditNoteScreen extends ConsumerWidget {
                         child: AutoDirection(
                           text: notesProvider.currentNote.body!,
                           child: TextFormField(
+                            style: const TextStyle(height: 2.0),
                             initialValue: notesProvider.currentNote.body,
                             decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.symmetric(
+                                  vertical: deviceHeight * 0.05,
+                                  horizontal: deviceWidth * 0.04),
                               labelText: 'Content',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25.0),

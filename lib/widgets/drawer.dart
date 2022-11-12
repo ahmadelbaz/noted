@@ -10,10 +10,21 @@ class DrawerView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
+    final isDarkProvider = ref.watch(isDarkStateProvider);
     return Drawer(
-      // backgroundColor: Colors.teal,
+      backgroundColor: Colors.teal,
       child: ListView(
         children: [
+          SizedBox(height: deviceHeight * 0.04),
+          IconButton(
+            onPressed: () {
+              ref.read(isDarkStateProvider.notifier).state =
+                  !ref.read(isDarkStateProvider.notifier).state;
+            },
+            icon: Icon(
+              isDarkProvider ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+            ),
+          ),
           SizedBox(height: deviceHeight * 0.06),
           ListTile(
             leading: const Icon(Icons.share_rounded),

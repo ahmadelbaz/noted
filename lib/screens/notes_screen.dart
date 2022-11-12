@@ -9,7 +9,6 @@ import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
 import 'package:noted/screens/all_notes_screen.dart';
-import 'package:noted/widgets/drawer.dart';
 
 // Provider (State) to switch search mode
 final inSearchModeStateProvider = StateProvider<bool>(((ref) => false));
@@ -37,6 +36,7 @@ class NotesScreen extends ConsumerWidget {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final searchProvider = ref.watch(inSearchModeStateProvider);
     final selectionProvider = ref.watch(inSelectionModeStateProvider);
+    final isDarkProvider = ref.watch(isDarkStateProvider);
     return DefaultTabController(
       // Length of tabs (We will change it later to be dynamic maybe to add categories)
       length: 2,
@@ -62,7 +62,7 @@ class NotesScreen extends ConsumerWidget {
           return false;
         },
         child: Scaffold(
-          drawer: const DrawerView(),
+          // drawer: const DrawerView(),
           // We add this so that we hide appbar when user scrolls
           body: NestedScrollView(
             headerSliverBuilder:
@@ -151,6 +151,26 @@ class NotesScreen extends ConsumerWidget {
                                   : Icons.search_rounded,
                             ),
                           ),
+                          IconButton(
+                            tooltip: 'Share all notes',
+                            onPressed: () =>
+                                shareAllNotes(context, notesProvider.getAll()),
+                            icon: const Icon(
+                              Icons.share_rounded,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Change theme',
+                            onPressed: () {
+                              ref.read(isDarkStateProvider.notifier).state =
+                                  !ref.read(isDarkStateProvider.notifier).state;
+                            },
+                            icon: Icon(
+                              isDarkProvider
+                                  ? Icons.wb_sunny_rounded
+                                  : Icons.dark_mode_rounded,
+                            ),
+                          ),
                         ],
                 ),
               ];
@@ -208,7 +228,12 @@ class NotesScreen extends ConsumerWidget {
             child: FloatingActionButton(
               tooltip: 'Add Note',
               onPressed: () {
-                final newNote = Note(title: '', body: '', isFavorite: false);
+                final newNote = Note(
+                  title: '',
+                  body: '',
+                  isFavorite: false,
+                  color: Colors.transparent,
+                );
                 final notesProvider = ref.watch(notesChangeNotifierProvider);
                 notesProvider.add(newNote);
                 Navigator.of(context).push(

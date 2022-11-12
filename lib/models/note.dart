@@ -22,7 +22,7 @@ class Note implements DatabaseModel {
       : uuid = uuid ?? const Uuid().v4(),
         createdDate = createdDate ?? DateTime.now(),
         updatedDate = updatedDate ?? DateTime.now(),
-        color = color ?? Colors.transparent;
+        color = color ?? const Color(0xFF303030);
 
   Note updated([String? title, body, bool? isFavorite, Color? color]) => Note(
         uuid: uuid,

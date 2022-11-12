@@ -26,31 +26,24 @@ Future<void> colorDialog(BuildContext context, WidgetRef ref, Note note) async {
           onColorChanged: (newColor) =>
               ref.read(newColorStateProvider.notifier).state = newColor,
         ),
-        // Use Material color picker:
-        //
-        // child: MaterialPicker(
-        //   pickerColor: pickerColor,
-        //   onColorChanged: changeColor,
-        //   showLabel: true, // only on portrait mode
-        // ),
-        //
-        // Use Block color picker:
-        //
-        // child: BlockPicker(
-        //   pickerColor: currentColor,
-        //   onColorChanged: changeColor,
-        // ),
-        //
-        // child: MultipleChoiceBlockPicker(
-        //   pickerColors: currentColors,
-        //   onColorsChanged: changeColors,
-        // ),
       ),
       actions: <Widget>[
         ElevatedButton(
           child: const Text('Cancel'),
           onPressed: () {
             Navigator.of(context).pop();
+          },
+        ),
+        ElevatedButton(
+          child: const Text('Transparent'),
+          onPressed: () async {
+            await ref
+                .watch(notesChangeNotifierProvider)
+                .updateColor(
+                  note,
+                  Colors.transparent,
+                )
+                .then((value) => Navigator.of(context).pop());
           },
         ),
         ElevatedButton(
