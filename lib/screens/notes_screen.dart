@@ -1,3 +1,4 @@
+import 'package:auto_direction/auto_direction.dart';
 import 'package:contained_tab_bar_view/contained_tab_bar_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,11 @@ final inSearchModeStateProvider = StateProvider<bool>(((ref) => false));
 
 // Provider (State) for the text we want to search with
 final searchTextStateProvider = StateProvider<String>(((ref) => ''));
+
+// Provider (State) to switch the list between gridview and listview
+final isGridStateProvider = StateProvider<bool>(
+  (ref) => false,
+);
 
 // Golobal key to the tab bar to controll it more
 GlobalKey<ContainedTabBarViewState> tabKey =
@@ -37,6 +43,7 @@ class NotesScreen extends ConsumerWidget {
     final searchProvider = ref.watch(inSearchModeStateProvider);
     final selectionProvider = ref.watch(inSelectionModeStateProvider);
     final isDarkProvider = ref.watch(isDarkStateProvider);
+    final isGridProvider = ref.watch(isGridStateProvider);
     return DefaultTabController(
       // Length of tabs (We will change it later to be dynamic maybe to add categories)
       length: 2,
@@ -45,7 +52,10 @@ class NotesScreen extends ConsumerWidget {
         onWillPop: () async {
           // First we check if we are in selection mode
           // If yes we close it first
-          if (selectionProvider.keys.first) {
+          if (searchProvider) {
+            ref.read(inSearchModeStateProvider.notifier).state = false;
+            return false;
+          } else if (selectionProvider.keys.first) {
             ref.read(inSelectionModeStateProvider.notifier).state = {
               false: false
             };
@@ -84,16 +94,19 @@ class NotesScreen extends ConsumerWidget {
                         )
                       // Then we check if we are in search mode so we change appbar title to textfield
                       : searchProvider
-                          ? TextField(
-                              decoration: const InputDecoration(
-                                labelText: 'Search',
+                          ? AutoDirection(
+                              text: ref.watch(searchTextStateProvider),
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Search',
+                                ),
+                                autofocus: true,
+                                onChanged: (value) {
+                                  ref
+                                      .read(searchTextStateProvider.notifier)
+                                      .state = value;
+                                },
                               ),
-                              autofocus: true,
-                              onChanged: (value) {
-                                ref
-                                    .read(searchTextStateProvider.notifier)
-                                    .state = value;
-                              },
                             )
                           : const Text('Noted'),
                   // We check if we are in selection mode to change th whole actions list
@@ -137,6 +150,8 @@ class NotesScreen extends ConsumerWidget {
                           IconButton(
                             tooltip: 'Search',
                             onPressed: () {
+                              ref.read(searchTextStateProvider.notifier).state =
+                                  '';
                               ref
                                       .read(inSearchModeStateProvider.notifier)
                                       .state =
@@ -152,6 +167,17 @@ class NotesScreen extends ConsumerWidget {
                             ),
                           ),
                           IconButton(
+                            tooltip: isGridProvider ? 'List View' : 'Grid View',
+                            onPressed: () => ref
+                                .read(isGridStateProvider.notifier)
+                                .state = !isGridProvider,
+                            icon: Icon(
+                              isGridProvider
+                                  ? Icons.view_list_rounded
+                                  : Icons.grid_view_rounded,
+                            ),
+                          ),
+                          IconButton(
                             tooltip: 'Share all notes',
                             onPressed: () =>
                                 shareAllNotes(context, notesProvider.getAll()),
@@ -163,7 +189,7 @@ class NotesScreen extends ConsumerWidget {
                             tooltip: 'Change theme',
                             onPressed: () {
                               ref.read(isDarkStateProvider.notifier).state =
-                                  !ref.read(isDarkStateProvider.notifier).state;
+                                  !isDarkProvider;
                             },
                             icon: Icon(
                               isDarkProvider
@@ -195,6 +221,8 @@ class NotesScreen extends ConsumerWidget {
                           EdgeInsets.symmetric(horizontal: deviceWidth * .06),
                       child: ContainedTabBarView(
                         tabBarProperties: const TabBarProperties(
+                          labelColor: Colors.cyan,
+                          unselectedLabelColor: Colors.grey,
                           position: TabBarPosition.bottom,
                         ),
                         key: tabKey,

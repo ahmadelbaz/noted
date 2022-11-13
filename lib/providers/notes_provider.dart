@@ -109,6 +109,30 @@ class NoteProvider extends ChangeNotifier {
     return sNote.isFavorite!;
   }
 
+  // Method to get all favorite notes
+  List<Note> getAllFavorites() {
+    return _notes.where((element) => element.isFavorite!).toList();
+  }
+
+  // Method to get all search notes
+  List<Note> getAllSearch(String searchText) {
+    return _notes
+        .where((note) =>
+            note.title!.toLowerCase().contains(searchText.toLowerCase()) ||
+            note.body!.toLowerCase().contains(searchText.toLowerCase()))
+        .toList();
+  }
+
+  // Method to get all favorite search notes
+  List<Note> getAllSearchFavorites(String searchText) {
+    return _notes
+        .where((note) =>
+            note.isFavorite! &&
+                note.title!.toLowerCase().contains(searchText.toLowerCase()) ||
+            note.body!.toLowerCase().contains(searchText.toLowerCase()))
+        .toList();
+  }
+
   // Method to update color of specific note
   // Method to update body
   Future<void> updateColor(Note note, Color newColor) async {
