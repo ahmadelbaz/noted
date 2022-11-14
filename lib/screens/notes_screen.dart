@@ -10,6 +10,7 @@ import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
 import 'package:noted/screens/add_edit_note_screen.dart';
 import 'package:noted/screens/all_notes_screen.dart';
+import 'package:noted/widgets/drawer.dart';
 
 // Provider (State) to switch search mode
 final inSearchModeStateProvider = StateProvider<bool>(((ref) => false));
@@ -42,7 +43,6 @@ class NotesScreen extends ConsumerWidget {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final searchProvider = ref.watch(inSearchModeStateProvider);
     final selectionProvider = ref.watch(inSelectionModeStateProvider);
-    final isDarkProvider = ref.watch(isDarkStateProvider);
     final isGridProvider = ref.watch(isGridStateProvider);
     return DefaultTabController(
       // Length of tabs (We will change it later to be dynamic maybe to add categories)
@@ -72,7 +72,8 @@ class NotesScreen extends ConsumerWidget {
           return false;
         },
         child: Scaffold(
-          // drawer: const DrawerView(),
+          resizeToAvoidBottomInset: false,
+          drawer: const DrawerView(),
           // We add this so that we hide appbar when user scrolls
           body: NestedScrollView(
             headerSliverBuilder:
@@ -168,33 +169,16 @@ class NotesScreen extends ConsumerWidget {
                           ),
                           IconButton(
                             tooltip: isGridProvider ? 'List View' : 'Grid View',
-                            onPressed: () => ref
-                                .read(isGridStateProvider.notifier)
-                                .state = !isGridProvider,
+                            onPressed: () async {
+                              ref.read(isGridStateProvider.notifier).state =
+                                  !isGridProvider;
+                              await notesProvider
+                                  .saveView(ref.watch(isGridStateProvider));
+                            },
                             icon: Icon(
                               isGridProvider
                                   ? Icons.view_list_rounded
                                   : Icons.grid_view_rounded,
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: 'Share all notes',
-                            onPressed: () =>
-                                shareAllNotes(context, notesProvider.getAll()),
-                            icon: const Icon(
-                              Icons.share_rounded,
-                            ),
-                          ),
-                          IconButton(
-                            tooltip: 'Change theme',
-                            onPressed: () {
-                              ref.read(isDarkStateProvider.notifier).state =
-                                  !isDarkProvider;
-                            },
-                            icon: Icon(
-                              isDarkProvider
-                                  ? Icons.wb_sunny_rounded
-                                  : Icons.dark_mode_rounded,
                             ),
                           ),
                         ],
@@ -203,49 +187,33 @@ class NotesScreen extends ConsumerWidget {
             },
             body: Consumer(
               builder: (context, ref, child) {
-                // Instance of the providers we need
-                final futureProvider = ref.watch(dataFutureProvider);
-                return futureProvider.when(
-                  skipLoadingOnReload: true,
-                  data: (data) {
-                    deviceWidth = MediaQuery.of(context).size.width;
-                    deviceHeight = MediaQuery.of(context).size.height;
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      margin:
-                          EdgeInsets.symmetric(horizontal: deviceWidth * .06),
-                      child: ContainedTabBarView(
-                        tabBarProperties: const TabBarProperties(
-                          labelColor: Colors.cyan,
-                          unselectedLabelColor: Colors.grey,
-                          position: TabBarPosition.bottom,
-                        ),
-                        key: tabKey,
-                        tabs: const [
-                          Text('All'),
-                          Text('Favorites'),
-                        ],
-                        views: [
-                          AllNotesScreen(
-                            isNormalMode: true,
-                          ),
-                          AllNotesScreen(
-                            isNormalMode: false,
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  error: (error, stackTrace) => const Center(
-                    child: Text('Error 😅'),
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
+                  margin: EdgeInsets.symmetric(horizontal: deviceWidth * .06),
+                  child: ContainedTabBarView(
+                    tabBarProperties: const TabBarProperties(
+                      labelColor: Colors.cyan,
+                      unselectedLabelColor: Colors.grey,
+                      position: TabBarPosition.bottom,
+                    ),
+                    key: tabKey,
+                    tabs: const [
+                      Text('All'),
+                      Text('Favorites'),
+                    ],
+                    views: [
+                      AllNotesScreen(
+                        isNormalMode: true,
+                      ),
+                      AllNotesScreen(
+                        isNormalMode: false,
+                      ),
+                    ],
                   ),
                 );
               },

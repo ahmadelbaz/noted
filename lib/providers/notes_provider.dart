@@ -1,8 +1,13 @@
 import 'dart:collection';
 
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:noted/consts.dart';
 import 'package:noted/database/database.dart';
+import 'package:noted/main.dart';
 import 'package:noted/models/note.dart';
+import 'package:noted/screens/notes_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NoteProvider extends ChangeNotifier {
   List<Note> _notes = [];
@@ -148,5 +153,35 @@ class NoteProvider extends ChangeNotifier {
     await myDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
+  }
+
+  // Save theme in shared preference
+  Future<void> saveTheme(bool isDark) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(isDarkKey, isDark);
+  }
+
+  // Get theme from shared preference
+  Future<void> getTheme(FutureProviderRef<void> ref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(isDarkKey)) {
+      bool isDark = prefs.getBool(isDarkKey)!;
+      ref.read(isDarkStateProvider.notifier).state = isDark;
+    }
+  }
+
+  // Save view [grid or list] in shared preference
+  Future<void> saveView(bool isGrid) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(isGridKey, isGrid);
+  }
+
+  // Get view [grid or list] from shared preference
+  Future<void> getView(FutureProviderRef<void> ref) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(isGridKey)) {
+      bool isGrid = prefs.getBool(isGridKey)!;
+      ref.read(isGridStateProvider.notifier).state = isGrid;
+    }
   }
 }

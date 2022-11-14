@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_direction/auto_direction.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -21,12 +23,15 @@ class AddEditNoteScreen extends ConsumerWidget {
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final isLockedProvider = ref.watch(isLockedStateProvider);
     final isDarkProvider = ref.watch(isDarkStateProvider);
+    log('Note color : ${notesProvider.currentNote.color}');
     return WillPopScope(
       onWillPop: () {
         return onWillPop(notesProvider, notesProvider.currentNote.title!,
             notesProvider.currentNote.body!);
       },
       child: Scaffold(
+        // We use this to resize widgets to not get error when widgets confilc
+        resizeToAvoidBottomInset: false,
         // We check if the note has color or just transparent
         // If it has color just set the backgoround with it
         // If it is transparent, the background color will depend on theme dark or light
@@ -36,7 +41,20 @@ class AddEditNoteScreen extends ConsumerWidget {
                 : Colors.white
             : notesProvider.currentNote.color,
         appBar: AppBar(
-          title: const Text('Note'),
+          // We want to avoid conflict colors in appbar icons
+          iconTheme: (notesProvider.currentNote.color == Colors.transparent &&
+                      !isDarkProvider) ||
+                  notesProvider.currentNote.color == Colors.white
+              ? const IconThemeData(
+                  color: Colors.black,
+                )
+              : null,
+          // Same color system for appbar background
+          backgroundColor: notesProvider.currentNote.color == Colors.transparent
+              ? isDarkProvider
+                  ? const Color(0xFF303030)
+                  : Colors.white
+              : notesProvider.currentNote.color,
           actions: [
             IconButton(
               tooltip: 'Change color',

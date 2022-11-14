@@ -14,10 +14,17 @@ final isDarkStateProvider = StateProvider<bool>(
   (ref) => true,
 );
 
+// Provider (Future) to get theme from shared preference
+// final themeFutureProvider = FutureProvider(((ref) async{
+//   await ref.watch(notesChangeNotifierProvider).get
+// }));
+
 // Provider (Future) to get the data saved in db before UI
 final dataFutureProvider = FutureProvider(
   (ref) async {
     await ref.watch(notesChangeNotifierProvider).getAllNotes();
+    await ref.watch(notesChangeNotifierProvider).getTheme(ref);
+    await ref.watch(notesChangeNotifierProvider).getView(ref);
   },
 );
 
@@ -49,52 +56,62 @@ class App extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return MaterialApp(
-      builder: (context, child) {
-        // Assign screen height and width to these global variables so we can use them in all screens
-        deviceWidth = MediaQuery.of(context).size.width;
-        deviceHeight = MediaQuery.of(context).size.height;
-        return Theme(
-          data: ThemeData(
-            primarySwatch: colorCustom,
-            primaryColor: const Color(0xFF303030),
-            indicatorColor:
-                ref.watch(isDarkStateProvider) ? Colors.white : Colors.black,
-            hintColor: Colors.grey,
-            highlightColor: const Color(0xffFCE192),
-            hoverColor: ref.watch(isDarkStateProvider)
-                ? const Color(0xff3A3A3B)
-                : const Color(0xff4285F4),
-            focusColor: ref.watch(isDarkStateProvider)
-                ? const Color(0xff0B2512)
-                : const Color(0xffA8DAB5),
-            disabledColor: Colors.grey,
-            cardColor: ref.watch(isDarkStateProvider)
-                ? const Color(0xFF303030)
-                : Colors.white,
-            canvasColor: ref.watch(isDarkStateProvider)
-                ? const Color(0xFF303030)
-                : Colors.grey[50],
-            brightness: ref.watch(isDarkStateProvider)
-                ? Brightness.dark
-                : Brightness.light,
-            buttonTheme: Theme.of(context).buttonTheme.copyWith(
-                  colorScheme: ref.watch(isDarkStateProvider)
-                      ? const ColorScheme.dark()
-                      : const ColorScheme.light(),
-                ),
-            appBarTheme: const AppBarTheme(
-              elevation: 0.0,
+    final futureProvider = ref.watch(dataFutureProvider);
+    return futureProvider.when(
+      skipLoadingOnReload: true,
+      data: (data) => MaterialApp(
+        builder: (context, child) {
+          // Assign screen height and width to these global variables so we can use them in all screens
+          deviceWidth = MediaQuery.of(context).size.width;
+          deviceHeight = MediaQuery.of(context).size.height;
+          return Theme(
+            data: ThemeData(
+              primarySwatch: colorCustom,
+              primaryColor: const Color(0xFF303030),
+              indicatorColor:
+                  ref.watch(isDarkStateProvider) ? Colors.white : Colors.black,
+              hintColor: Colors.grey,
+              highlightColor: const Color(0xffFCE192),
+              hoverColor: ref.watch(isDarkStateProvider)
+                  ? const Color(0xff3A3A3B)
+                  : const Color(0xff4285F4),
+              focusColor: ref.watch(isDarkStateProvider)
+                  ? const Color(0xff0B2512)
+                  : const Color(0xffA8DAB5),
+              disabledColor: Colors.grey,
+              cardColor: ref.watch(isDarkStateProvider)
+                  ? const Color(0xFF303030)
+                  : Colors.white,
+              canvasColor: ref.watch(isDarkStateProvider)
+                  ? const Color(0xFF303030)
+                  : Colors.grey[50],
+              brightness: ref.watch(isDarkStateProvider)
+                  ? Brightness.dark
+                  : Brightness.light,
+              buttonTheme: Theme.of(context).buttonTheme.copyWith(
+                    colorScheme: ref.watch(isDarkStateProvider)
+                        ? const ColorScheme.dark()
+                        : const ColorScheme.light(),
+                  ),
+              appBarTheme: const AppBarTheme(
+                elevation: 0.0,
+              ),
             ),
-          ),
-          child: child!,
-        );
-      },
-      debugShowCheckedModeBanner: false,
-      routes: {
-        '/': (context) => const NotesScreen(),
-        '/add_edit_note': (context) => const AddEditNoteScreen(),
-      },
+            child: child!,
+          );
+        },
+        debugShowCheckedModeBanner: false,
+        routes: {
+          '/': (context) => const NotesScreen(),
+          '/add_edit_note': (context) => const AddEditNoteScreen(),
+        },
+      ),
+      error: (error, stackTrace) => const Center(
+        child: Text('Error 😅'),
+      ),
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }
