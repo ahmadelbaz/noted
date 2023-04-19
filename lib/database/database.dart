@@ -5,7 +5,8 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 class MyDatabase extends ChangeNotifier {
-  Future<Database> notesDatabase() async {
+  MyDatabase._();
+  static Future<Database> _notesDatabase() async {
 // Method for version 1 of the database
     void createTablesV1(Batch batch) {
       // Deleting the table, and any data associated with it, from the database if it exists.
@@ -28,6 +29,10 @@ class MyDatabase extends ChangeNotifier {
     );
   }
 
+  static Future<Database> getNotesDatabase() async {
+    return _notesDatabase();
+  }
+
   // Future<Database> getDatabase(DatabaseModel model) async {
   //   return await getDatabaseByName('${model.database()}');
   // }
@@ -35,15 +40,15 @@ class MyDatabase extends ChangeNotifier {
   // Future<Database> getDatabaseByName(String dbName) {
   //   switch (dbName) {
   //     case 'notes_database':
-  //       return notesDatabase();
+  //       return _notesDatabase();
   //     default:
-  //       return notesDatabase();
+  //       return _notesDatabase();
   //   }
   // }
 
   // Insert in DB method using table name & the data itself
-  Future<void> insert(DatabaseModel model) async {
-    final db = await notesDatabase();
+  static Future<void> insert(DatabaseModel model) async {
+    final db = await _notesDatabase();
     db.insert(
       model.table()!,
       model.toMap()!,
@@ -52,20 +57,20 @@ class MyDatabase extends ChangeNotifier {
   }
 
   // Update data in DB method using table name, the new data & id
-  Future<void> update(DatabaseModel model) async {
-    final db = await notesDatabase();
+  static Future<void> update(DatabaseModel model) async {
+    final db = await _notesDatabase();
     db.update(
       model.table()!,
       model.toMap()!,
       where: 'id = ?',
       whereArgs: [model.getId()],
     );
-    notifyListeners();
+    // notifyListeners();
   }
 
   // Delete data from DB method using table name & id
-  Future<void> delete(DatabaseModel model) async {
-    final db = await notesDatabase();
+  static Future<void> delete(DatabaseModel model) async {
+    final db = await _notesDatabase();
     db.delete(
       model.table()!,
       where: 'id = ?',
@@ -75,8 +80,8 @@ class MyDatabase extends ChangeNotifier {
   }
 
   // Method to get the data stored in database
-  Future<List<DatabaseModel>> getAll(String table) async {
-    final db = await notesDatabase();
+  static Future<List<DatabaseModel>> getAll(String table) async {
+    final db = await _notesDatabase();
     final List<Map<String, dynamic>> maps = await db.query(table);
     List<Note> notesData = [];
     for (var item in maps) {

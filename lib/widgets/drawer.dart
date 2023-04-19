@@ -9,15 +9,19 @@ class DrawerView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Call providers we need to use
     final notesProvider = ref.watch(notesChangeNotifierProvider);
     final isDarkProvider = ref.watch(isDarkStateProvider);
+    // Add color to background and appbar depends on dark mode or light mode
+    final backGorundColor =
+        isDarkProvider ? const Color(0xff006666) : Colors.teal;
     return Drawer(
-      backgroundColor: Colors.teal,
+      backgroundColor: backGorundColor,
       child: ListView(
         children: [
           AppBar(
             title: const Text('Noted'),
-            backgroundColor: Colors.teal,
+            backgroundColor: backGorundColor,
             elevation: 0,
             automaticallyImplyLeading: false,
             actions: [

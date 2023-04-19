@@ -10,6 +10,7 @@ import 'package:noted/screens/notes_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NoteProvider extends ChangeNotifier {
+  // NoteProvider._();
   List<Note> _notes = [];
   UnmodifiableListView get notes => UnmodifiableListView(_notes);
 
@@ -26,7 +27,7 @@ class NoteProvider extends ChangeNotifier {
   Note get currentNote => _currentNote;
 
   // Instance from database to use it in provider
-  MyDatabase myDatabase = MyDatabase();
+  // MyDatabase myDatabase = MyDatabase();
 
   // Method to set current note to the one that user are using right now
   setCurrentNote(Note note) {
@@ -36,31 +37,31 @@ class NoteProvider extends ChangeNotifier {
 
   // Method to get all notes from database
   Future<void> getAllNotes() async {
-    await myDatabase.notesDatabase();
-    _notes = await myDatabase.getAll('notes') as List<Note>;
+    await MyDatabase.getNotesDatabase();
+    _notes = await MyDatabase.getAll('notes') as List<Note>;
     // notifyListeners();
   }
 
   // Method to add new note
   Future<void> add(Note note) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     _notes.add(note);
     _currentNote = note;
-    await myDatabase.insert(note);
+    await MyDatabase.insert(note);
     notifyListeners();
   }
 
   // Method to remove a note
   Future<void> remove(Note note) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     _notes.remove(note);
-    await myDatabase.delete(note);
+    await MyDatabase.delete(note);
     notifyListeners();
   }
 
   // Method to update title
   Future<void> updateTitle(Note note, String newTitle) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     final index = _notes.indexOf(note);
     Note selectedNote = _notes[index];
     _notes[index] = selectedNote.updated(
@@ -69,14 +70,14 @@ class NoteProvider extends ChangeNotifier {
       note.isFavorite,
       note.color,
     );
-    await myDatabase.update(_notes[index]);
+    await MyDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }
 
   // Method to update body
   Future<void> updateBody(Note note, String newBody) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     final index = _notes.indexOf(note);
     Note selectedNote = _notes[index];
     _notes[index] = selectedNote.updated(
@@ -85,14 +86,14 @@ class NoteProvider extends ChangeNotifier {
       note.isFavorite,
       note.color,
     );
-    await myDatabase.update(_notes[index]);
+    await MyDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }
 
   // Method to switch between favorite or not
   Future<void> switchFavorite(Note note) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     final index = _notes.indexOf(note);
     Note oldNote = _notes[index];
     _notes[index] = oldNote.updated(
@@ -101,7 +102,7 @@ class NoteProvider extends ChangeNotifier {
       !note.isFavorite!,
       note.color,
     );
-    await myDatabase.update(_notes[index]);
+    await MyDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }
@@ -141,7 +142,7 @@ class NoteProvider extends ChangeNotifier {
   // Method to update color of specific note
   // Method to update body
   Future<void> updateColor(Note note, Color newColor) async {
-    await myDatabase.notesDatabase();
+    await MyDatabase.getNotesDatabase();
     final index = _notes.indexOf(note);
     Note selectedNote = _notes[index];
     _notes[index] = selectedNote.updated(
@@ -150,7 +151,7 @@ class NoteProvider extends ChangeNotifier {
       note.isFavorite,
       newColor,
     );
-    await myDatabase.update(_notes[index]);
+    await MyDatabase.update(_notes[index]);
     _currentNote = _notes[index];
     notifyListeners();
   }

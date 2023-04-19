@@ -194,7 +194,7 @@ class NotesScreen extends ConsumerWidget {
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  margin: EdgeInsets.symmetric(horizontal: deviceWidth * .06),
+                  margin: EdgeInsets.symmetric(horizontal: deviceWidth * .03),
                   child: ContainedTabBarView(
                     tabBarProperties: const TabBarProperties(
                       labelColor: Colors.cyan,

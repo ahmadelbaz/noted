@@ -110,19 +110,10 @@ class AllNotesScreen extends ConsumerWidget {
                                     text: note.body,
                                     child: Text(
                                       note.body,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  trailing: IconButton(
-                                    onPressed: () =>
-                                        notesProvider.switchFavorite(note),
-                                    icon: Icon(
-                                      color: isDarkProvider
-                                          ? Colors.white
-                                          : Colors.black,
-                                      notesProvider.getFavorite(note)
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
+                                      maxLines:
+                                          orientation == Orientation.portrait
+                                              ? 4
+                                              : 2,
                                     ),
                                   ),
                                   onTap: () async {
